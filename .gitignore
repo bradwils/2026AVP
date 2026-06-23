@@ -1,0 +1,44 @@
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+*.perspective
+*.perspectivev3
+*.xcworkspace/
+xcuserdata/
+*.xcuserstate
+*.xcschemes/
+
+# Build artifacts
+*.app/
+*.framework/
+*.dSYM/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Xcode IDE
+.idea/
+*.swiftpm
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.plist.bak
+
+# IDE
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+*~
