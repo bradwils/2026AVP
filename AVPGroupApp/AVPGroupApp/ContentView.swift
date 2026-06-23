@@ -14,9 +14,6 @@ struct ContentView: View {
 }
 
 struct WelcomeView: View {
-    @Environment(AppModel.self) private var appModel
-    @Environment(\.openWindow) private var openWindow
-    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @State private var showGuide = false
 
     var body: some View {
@@ -57,20 +54,9 @@ struct WelcomeView: View {
             // Feature highlights
             HStack(spacing: 24) {
                 Button {
-                    #if targetEnvironment(simulator)
                     showGuide = true
-                    #else
-                    openWindow(id: "cpr-video")
-                    openWindow(id: "cpr-steps")
-                    #endif
                 } label: {
-                    FeatureCard(
-                        icon: "lungs.fill",
-                        color: .blue,
-                        title: "Guided Steps",
-                        description: "Step-by-step CPR guidance",
-                        tappable: true
-                    )
+                    FeatureCard(icon: "lungs.fill", color: .blue, title: "Guided Steps", description: "Step-by-step CPR guidance")
                 }
                 .buttonStyle(.plain)
                 .hoverEffect()
@@ -79,13 +65,10 @@ struct WelcomeView: View {
                 FeatureCard(icon: "graduationcap.fill", color: .orange, title: "Training Mode", description: "Safe pre-lab practice")
             }
             .padding(.horizontal)
-            .sheet(isPresented: $showGuide) {
-                CPRSideBySideView()
-            }
+
             Spacer()
 
             Button {
-                openTrainingWorkspace()
             } label: {
                 Label("Get Started", systemImage: "arrow.right.circle.fill")
                     .font(.title3.weight(.semibold))
@@ -98,30 +81,9 @@ struct WelcomeView: View {
             Spacer()
         }
         .padding()
-    }
-
-    private func openTrainingWorkspace() {
-        #if targetEnvironment(simulator)
-        showGuide = true
-        #else
-        openWindow(id: "cpr-video")
-        openWindow(id: "cpr-steps")
-        openWindow(id: "stopwatch")
-
-        guard appModel.immersiveSpaceState == .closed else { return }
-        appModel.immersiveSpaceState = .inTransition
-
-        Task { @MainActor in
-            switch await openImmersiveSpace(id: appModel.immersiveSpaceID) {
-            case .opened:
-                break
-            case .userCancelled, .error:
-                fallthrough
-            @unknown default:
-                appModel.immersiveSpaceState = .closed
-            }
+        .sheet(isPresented: $showGuide) {
+            CPRSideBySideView()
         }
-        #endif
     }
 }
 
@@ -130,7 +92,6 @@ struct FeatureCard: View {
     let color: Color
     let title: String
     let description: String
-    var tappable: Bool = false
 
     var body: some View {
         VStack(spacing: 10) {
@@ -148,19 +109,10 @@ struct FeatureCard: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-
-            if tappable {
-                Label("Tap to open", systemImage: "arrow.up.right.square")
-                    .font(.caption2)
-                    .foregroundStyle(color)
-            }
         }
         .frame(width: 140)
         .padding()
         .glassBackgroundEffect()
-        .overlay(
-            tappable ? RoundedRectangle(cornerRadius: 16).stroke(color.opacity(0.5), lineWidth: 1) : nil
-        )
     }
 }
 
