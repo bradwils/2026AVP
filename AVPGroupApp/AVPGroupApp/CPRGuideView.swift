@@ -212,15 +212,47 @@ let cprSteps: [CPRStep] = [
 // MARK: - Side-by-Side Layout (Video left, Steps right — shown as a sheet)
 
 struct CPRSideBySideView: View {
+    
+    @Environment(\.dismiss) private var dismiss
+    
     var body: some View {
-        HStack(spacing: 0) {
-            CPRVideoView()
-                .frame(width: 620)
+        VStack(spacing: 0) {
+            
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Label("Back", systemImage: "chevron.left")
+                }
+                .buttonStyle(.bordered)
+                
+                Spacer()
+                
+                Text("CPR Guide")
+                    .font(.headline)
+                
+                Spacer()
+                
+                // Giữ layout cân đối vì bên trái có nút Back
+                Color.clear
+                    .frame(width: 70, height: 1)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            
             Divider()
-            CPRStepsView()
-                .frame(width: 380)
+            
+            HStack(spacing: 0) {
+                CPRVideoView()
+                    .frame(width: 620)
+                
+                Divider()
+                
+                CPRStepsView()
+                    .frame(width: 380)
+            }
         }
-        .frame(height: 620)
+        .frame(width: 1000, height: 670)
     }
 }
 
