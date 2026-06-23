@@ -14,6 +14,9 @@ struct ContentView: View {
 }
 
 struct WelcomeView: View {
+    @Environment(AppModel.self) private var appModel
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @State private var showGuide = false
 
     var body: some View {
@@ -54,7 +57,12 @@ struct WelcomeView: View {
             // Feature highlights
             HStack(spacing: 24) {
                 Button {
+                    #if targetEnvironment(simulator)
                     showGuide = true
+                    #else
+                    openWindow(id: "cpr-video")
+                    openWindow(id: "cpr-steps")
+                    #endif
                 } label: {
                     FeatureCard(
                         icon: "lungs.fill",
@@ -77,6 +85,7 @@ struct WelcomeView: View {
             Spacer()
 
             Button {
+                openTrainingWorkspace()
             } label: {
                 Label("Get Started", systemImage: "arrow.right.circle.fill")
                     .font(.title3.weight(.semibold))
@@ -89,6 +98,30 @@ struct WelcomeView: View {
             Spacer()
         }
         .padding()
+    }
+
+    private func openTrainingWorkspace() {
+        #if targetEnvironment(simulator)
+        showGuide = true
+        #else
+        openWindow(id: "cpr-video")
+        openWindow(id: "cpr-steps")
+        openWindow(id: "stopwatch")
+
+        guard appModel.immersiveSpaceState == .closed else { return }
+        appModel.immersiveSpaceState = .inTransition
+
+        Task { @MainActor in
+            switch await openImmersiveSpace(id: appModel.immersiveSpaceID) {
+            case .opened:
+                break
+            case .userCancelled, .error:
+                fallthrough
+            @unknown default:
+                appModel.immersiveSpaceState = .closed
+            }
+        }
+        #endif
     }
 }
 
