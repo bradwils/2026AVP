@@ -6,27 +6,17 @@
 //
 
 import SwiftUI
-import RealityKit
-import RealityKitContent
 
 struct ContentView: View {
-    @State private var showWelcome = true
-
     var body: some View {
-        if showWelcome {
-            WelcomeView(onGetStarted: {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    showWelcome = false
-                }
-            })
-        } else {
-            MainView()
-        }
+        WelcomeView()
     }
 }
 
 struct WelcomeView: View {
-    var onGetStarted: () -> Void
+    @Environment(AppModel.self) private var appModel
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @State private var showGuide = false
 
     var body: some View {
@@ -67,9 +57,20 @@ struct WelcomeView: View {
             // Feature highlights
             HStack(spacing: 24) {
                 Button {
+                    #if targetEnvironment(simulator)
                     showGuide = true
+                    #else
+                    openWindow(id: "cpr-video")
+                    openWindow(id: "cpr-steps")
+                    #endif
                 } label: {
-                    FeatureCard(icon: "lungs.fill", color: .blue, title: "Guided Steps", description: "Step-by-step CPR guidance", tappable: true)
+                    FeatureCard(
+                        icon: "lungs.fill",
+                        color: .blue,
+                        title: "Guided Steps",
+                        description: "Step-by-step CPR guidance",
+                        tappable: true
+                    )
                 }
                 .buttonStyle(.plain)
                 .hoverEffect()
@@ -81,11 +82,11 @@ struct WelcomeView: View {
             .sheet(isPresented: $showGuide) {
                 CPRSideBySideView()
             }
-
             Spacer()
 
-            // Get Started button
-            Button(action: onGetStarted) {
+            Button {
+                openTrainingWorkspace()
+            } label: {
                 Label("Get Started", systemImage: "arrow.right.circle.fill")
                     .font(.title3.weight(.semibold))
                     .padding(.horizontal, 40)
@@ -97,6 +98,30 @@ struct WelcomeView: View {
             Spacer()
         }
         .padding()
+    }
+
+    private func openTrainingWorkspace() {
+        #if targetEnvironment(simulator)
+        showGuide = true
+        #else
+        openWindow(id: "cpr-video")
+        openWindow(id: "cpr-steps")
+        openWindow(id: "stopwatch")
+
+        guard appModel.immersiveSpaceState == .closed else { return }
+        appModel.immersiveSpaceState = .inTransition
+
+        Task { @MainActor in
+            switch await openImmersiveSpace(id: appModel.immersiveSpaceID) {
+            case .opened:
+                break
+            case .userCancelled, .error:
+                fallthrough
+            @unknown default:
+                appModel.immersiveSpaceState = .closed
+            }
+        }
+        #endif
     }
 }
 
@@ -136,20 +161,6 @@ struct FeatureCard: View {
         .overlay(
             tappable ? RoundedRectangle(cornerRadius: 16).stroke(color.opacity(0.5), lineWidth: 1) : nil
         )
-    }
-}
-
-struct MainView: View {
-    var body: some View {
-        VStack {
-            Model3D(named: "Scene", bundle: realityKitContentBundle)
-                .padding(.bottom, 50)
-
-            Text("Hello, world!")
-
-            ToggleImmersiveSpaceButton()
-        }
-        .padding()
     }
 }
 
