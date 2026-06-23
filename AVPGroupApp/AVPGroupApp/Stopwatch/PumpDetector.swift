@@ -10,7 +10,6 @@ import Foundation
 /// Detects a CPR compression ("pump") from a hand-to-headset distance stream using a hysteresis (Schmitt trigger) state machine.
 struct PumpDetector {
     enum State { case near, away }
-    
 
     var awayThreshold: Double = 0.02
     var returnThreshold: Double = 0.02
@@ -20,27 +19,6 @@ struct PumpDetector {
     private(set) var baseline: Double? = nil
     private(set) var pumpCount: Int = 0
     private var lastSampleTime: Double? = nil
-    
-    mutating func changePumpSensitivity(type: String) {
-        switch type {
-        case "sensitive":
-            awayThreshold = 0.01
-            returnThreshold = 0.01
-            break;
-            
-        case "normal":
-            awayThreshold = 0.02
-            returnThreshold = 0.02
-            break;
-        case "weak":
-            awayThreshold = 0.03
-            returnThreshold = 0.03
-        default:
-            awayThreshold = 0.03
-            returnThreshold = 0.03
-            
-        }
-    }
 
     mutating func update(distance: Double, timestamp: Double) -> Bool {
         guard let baseline else {
