@@ -17,6 +17,13 @@ struct AVPGroupAppApp: App {
             ContentView()
                 .environment(appModel)
         }
+        .defaultSize(width: 600, height: 600)
+
+        WindowGroup(id: "stopwatch") {
+            MinuteTimerView()
+        }
+        .defaultSize(width: 300, height: 250)
+        .windowResizability(.contentSize)
 
         ImmersiveSpace(id: appModel.immersiveSpaceID) {
             ImmersiveView()
